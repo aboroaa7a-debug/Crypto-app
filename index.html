@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>سوق العملات</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com/3.4.17"></script>
+<style>
+:root{--bg:#0b1020;--surface:#151d32;--surface2:#1c2740;--ink:#edf3ff;--muted:#a9b6ce;--line:#34415c;--accent:#7775f5;--green:#48d8a0;--red:#ff818e}
+body.light{--bg:#eef2fb;--surface:#fff;--surface2:#e9eef9;--ink:#17223b;--muted:#52627c;--line:#d3dced;--accent:#5550d6;--green:#087d56;--red:#bd3652}
+*{box-sizing:border-box}body{font-family:Cairo,sans-serif;color:var(--ink);margin:0;background:var(--bg);min-height:100vh;transition:.2s}
+.app-shell{min-height:100vh;background:radial-gradient(circle at 78% 0%,rgba(100,91,239,.19),transparent 38%),var(--bg)}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:22px;transition:.2s}
+.muted{color:var(--muted)}.up{color:var(--green)}.down{color:var(--red)}
+.primary{background:#6966e9;color:#fff;border-radius:12px;font-weight:700;border:none;cursor:pointer;font-family:inherit;padding:10px 20px;transition:.2s}
+.primary:hover{background:#5552d0;transform:translateY(-1px)}
+.secondary{background:var(--surface2);color:var(--ink);border:1px solid var(--line);border-radius:12px;cursor:pointer;font-family:inherit;padding:10px 16px}
+.field{width:100%;background:var(--surface2);border:1px solid var(--line);color:var(--ink);border-radius:12px;padding:11px 14px;outline:none;font-family:inherit}
+.scroll-table{overflow-x:auto}table{min-width:600px;width:100%;border-collapse:collapse}th,td{padding:13px;text-align:right;border-bottom:1px solid var(--line)}
+th{color:var(--muted);font-weight:600;font-size:13px}
+.toast{position:fixed;bottom:22px;left:22px;z-index:60;background:var(--surface);border:1px solid var(--accent);padding:14px 20px;border-radius:14px;box-shadow:0 20px 50px #0007;max-width:calc(100% - 44px)}
+.modal{position:fixed;inset:0;z-index:70;background:#030816cc;display:grid;place-items:center;padding:18px;backdrop-filter:blur(4px)}
+.fav-btn{background:none;border:none;cursor:pointer;font-size:20px;padding:4px;transition:.2s;line-height:1}
+.fav-btn:hover{transform:scale(1.2)}
+.chart-container{width:100%;height:220px;position:relative}
+.chart-svg{width:100%;height:100%}
+.chart-line{fill:none;stroke:#8c89ff;stroke-width:2.5;stroke-linejoin:round;stroke-linecap:round}
+.chart-area{fill:url(#gradient);opacity:.4}
+.settings-btn{position:fixed;bottom:80px;left:20px;width:48px;height:48px;border-radius:50%;background:var(--accent);color:white;border:none;cursor:pointer;font-size:20px;z-index:40;box-shadow:0 8px 20px #0007;transition:.2s}
+.settings-btn:hover{transform:scale(1.1) rotate(90deg)}
+.settings-panel{position:fixed;bottom:140px;left:20px;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:16px;z-index:45;box-shadow:0 20px 50px #0007;min-width:240px}
+.settings-panel label{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px;font-size:14px;cursor:pointer}
+.settings-panel input[type=number]{width:80px;background:var(--surface2);border:1px solid var(--line);color:var(--ink);border-radius:8px;padding:6px 10px;text-align:center;font-family:inherit}
+.toggle{position:relative;width:44px;height:24px;background:var(--line);border-radius:12px;cursor:pointer;transition:.2s;flex-shrink:0}
+.toggle::after{content:'';position:absolute;top:2px;right:2px;width:20px;height:20px;background:white;border-radius:50%;transition:.2s}
+.toggle.on{background:var(--green)}
+.toggle.on::after{transform:translateX(-20px)}
+.nav-tabs{display:flex;gap:6px;margin-bottom:16px;overflow-x:auto;padding-bottom:4px}
+.nav-tab{background:var(--surface2);color:var(--muted);border:1px solid var(--line);border-radius:12px;padding:10px 18px;cursor:pointer;font-family:inherit;font-weight:600;white-space:nowrap;transition:.2s}
+.nav-tab.active{background:#6966e9;color:#fff;border-color:#6966e9}
+.tab-content{display:none}.tab-content.active{display:block}
+.converter-grid{display:grid;grid-template-columns:1fr auto 1fr;gap:12px;align-items:end;margin-bottom:16px}
+.news-item{padding:14px;border-bottom:1px solid var(--line);cursor:pointer;transition:.2s}
+.news-item:hover{background:var(--surface2)}
+.news-item:last-child{border-bottom:none}
+.news-title{font-weight:600;margin-bottom:6px;line-height:1.5}
+.news-meta{font-size:12px;color:var(--muted)}
+.compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
+.loading{text-align:center;padding:20px;color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="app-shell">
+<div class="max-w-6xl mx-auto p-5">
+<header class="flex flex-wrap items-center justify-between gap-3 mb-4">
+<div class="flex items-center gap-3">
+<span class="w-12 h-12 rounded-xl grid place-items-center text-white font-bold text-2xl" style="background:#6966e9">₿</span>
+<div>
+<strong class="block text-lg">سوق العملات</strong>
+<small class="muted text-sm">أسعار حقيقية مباشرة</small>
+</div>
+</div>
+<button id="refresh-btn" class="primary">🔄 تحديث</button>
+</header>
+
+<div class="nav-tabs">
+<button class="nav-tab active" data-tab="tab-prices">💰 الأسعار</button>
+<button class="nav-tab" data-tab="tab-converter">💱 محول</button>
+<button class="nav-tab" data-tab="tab-compare">📈 مقارنة</button>
+<button class="nav-tab" data-tab="tab-news">📰 أخبار</button>
+</div>
+
+<div id="tab-prices" class="tab-content active">
+<div id="status" class="panel p-4 mb-6 text-sm">⏳ جاري تحميل الأسعار...</div>
+<h2 class="font-bold text-2xl mb-4">أهم العملات</h2>
+<div id="price-cards" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 mb-8"></div>
+<div class="panel p-5">
+<div class="flex flex-wrap justify-between items-center gap-3 mb-4">
+<h2 class="font-bold text-xl">جميع الأسواق</h2>
+<div class="flex gap-2 flex-wrap">
+<input id="search" class="field" style="max-width:200px" type="search" placeholder="ابحث...">
+<select id="filter" class="field" style="max-width:180px">
+<option value="all">كل العملات</option>
+<option value="fav">⭐ المفضلة</option>
+<option value="up">📈 الرابحة</option>
+<option value="down">📉 الخاسرة</option>
+</select>
+</div>
+</div>
+<div class="scroll-table">
+<table>
+<thead><tr><th style="width:40px">⭐</th><th>#</th><th>العملة</th><th>السعر</th><th>24 ساعة</th><th>القيمة السوقية</th></tr></thead>
+<tbody id="rows"></tbody>
+</table>
+</div>
+</div>
+</div>
+
+<div id="tab-converter" class="tab-content">
+<div class="panel p-6 max-w-2xl mx-auto">
+<h2 class="font-bold text-2xl mb-4">💱 محول العملات</h2>
+<p class="muted mb-5 text-sm">حوّل بين أي عملتين بالأسعار الحقيقية.</p>
+<div class="converter-grid">
+<div><label class="block mb-1 text-sm">من</label><select id="conv-from" class="field"></select></div>
+<button id="swap-conv" class="secondary" style="font-size:20px">⇄</button>
+<div><label class="block mb-1 text-sm">إلى</label><select id="conv-to" class="field"></select></div>
+</div>
+<div class="mb-4">
+<label class="block mb-1 text-sm">المبلغ</label>
+<input id="conv-amount" type="number" class="field text-lg" value="1" step="any" min="0">
+</div>
+<div id="conv-result" class="panel p-5 text-center" style="background:var(--surface2)">
+<div class="muted text-sm mb-2">النتيجة</div>
+<div id="conv-value" class="font-bold text-3xl" dir="ltr">--</div>
+<div id="conv-rate" class="muted text-sm mt-2"></div>
+</div>
+</div>
+</div>
+
+<div id="tab-compare" class="tab-content">
+<div class="panel p-6">
+<h2 class="font-bold text-2xl mb-4">📈 مقارنة العملات</h2>
+<div class="compare-grid">
+<div><label class="block mb-1 text-sm">العملة الأولى</label><select id="cmp-a" class="field"></select></div>
+<div><label class="block mb-1 text-sm">العملة الثانية</label><select id="cmp-b" class="field"></select></div>
+</div>
+<button id="cmp-btn" class="primary mb-4">🔍 قارن</button>
+<div id="cmp-result" class="loading">اختر عملتين ثم اضغط "قارن".</div>
+</div>
+</div>
+
+<div id="tab-news" class="tab-content">
+<div class="panel p-5">
+<div class="flex justify-between items-center mb-4">
+<h2 class="font-bold text-2xl">📰 أخبار السوق</h2>
+<button id="news-refresh" class="secondary">🔄 تحديث</button>
+</div>
+<div id="news-list" class="loading">⏳ جاري تحميل الأخبار...</div>
+</div>
+</div>
+
+<footer class="muted text-sm text-center mt-8 pb-24">
+<p>سوق العملات © 2026 — بيانات من CoinGecko</p>
+</footer>
+</div>
+</div>
+
+<div id="detail-modal" class="modal" hidden>
+<div class="panel p-5 w-full max-w-2xl" style="max-height:90vh;overflow-y:auto">
+<div class="flex justify-between items-center mb-4">
+<div class="flex items-center gap-3">
+<img id="detail-img" class="w-10 h-10 rounded-full">
+<div>
+<h2 id="detail-name" class="font-bold text-xl"></h2>
+<div id="detail-symbol" class="muted text-sm"></div>
+</div>
+</div>
+<button id="close-detail" class="secondary">✕</button>
+</div>
+<div id="detail-price" class="font-bold text-3xl mb-2" dir="ltr"></div>
+<div id="detail-change" class="mb-4"></div>
+<div class="chart-container"><svg id="chart" class="chart-svg" viewBox="0 0 800 220" preserveAspectRatio="none">
+<defs><linearGradient id="gradient" x1="0" x2="0" y1="0" y2="1">
+<stop offset="0%" stop-color="#8c89ff"/><stop offset="100%" stop-color="#8c89ff" stop-opacity="0"/>
+</linearGradient></defs>
+<path id="chart-area" class="chart-area"/><polyline id="chart-line" class="chart-line"/>
+</svg></div>
+<div id="chart-days" class="flex gap-1 mt-3"></div>
+<div class="grid grid-cols-2 gap-3 mt-4">
+<div class="p-3 rounded-xl" style="background:var(--surface2)"><div class="muted text-xs">القيمة السوقية</div><div id="detail-cap" class="font-bold" dir="ltr"></div></div>
+<div class="p-3 rounded-xl" style="background:var(--surface2)"><div class="muted text-xs">حجم التداول</div><div id="detail-vol" class="font-bold" dir="ltr"></div></div>
+<div class="p-3 rounded-xl" style="background:var(--surface2)"><div class="muted text-xs">أعلى (24س)</div><div id="detail-high" class="font-bold" dir="ltr"></div></div>
+<div class="p-3 rounded-xl" style="background:var(--surface2)"><div class="muted text-xs">أدنى (24س)</div><div id="detail-low" class="font-bold" dir="ltr"></div></div>
+</div>
+</div>
+</div>
+
+<button id="settings-btn" class="settings-btn" title="الإعدادات">⚙️</button>
+<div id="settings-panel" class="settings-panel" hidden>
+<h3 class="font-bold mb-3">الإعدادات</h3>
+<label><span>🌙 الوضع الداكن</span><div id="theme-toggle" class="toggle on"></div></label>
+<label><span>🔔 إشعارات السعر</span><div id="notif-toggle" class="toggle on"></div></label>
+<label><span>نسبة التنبيه %</span><input id="notif-percent" type="number" value="3" min="1" max="20"></label>
+<label><span>تحديث (ثانية)</span><input id="refresh-interval" type="number" value="60" min="30" max="300"></label>
+<p class="muted text-xs mt-2">يتم الحفظ تلقائياً</p>
+</div>
+
+<div id="toast" class="toast" hidden></div>
+<script src="app.js"></script>
+</body>
+</html>
